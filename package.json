@@ -1,0 +1,15 @@
+{
+  "name": "lltrace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hassy Veldstra <h@veldstra.org>",
+  "license": "MPL-2.0",
+  "dependencies": {
+    "aws-sdk": "2.4.7",
+    "chalk": "^1.1.3"
+  }
+}
