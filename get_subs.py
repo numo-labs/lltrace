@@ -5,8 +5,8 @@ import sys
 
 pp = pprint.PrettyPrinter(indent=2)
 
-key_id = os.environ.get('AWS_ACCESS_KEY_ID') or 'AKIAIHTYI7LGCBDDXHFQ'
-access_key = os.environ.get('AWS_SECRET_ACCESS_KEY') or '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'
+key_id = os.environ.get('AWS_ACCESS_KEY_ID')
+access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
 
 client = boto3.client(
     's3',
