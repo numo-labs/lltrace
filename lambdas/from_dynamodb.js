@@ -1,6 +1,39 @@
 var AWS = require('aws-sdk');
 var format = require('util').format;
 
+function guessType (id) {
+  if (id.startsWith('s3:')) {
+    return 's3';
+  } else if (/:sns:/.test(id)) {
+    return 'sns';
+  } else {
+    return 'lambda'; // FIXME: not actually very reliable
+  }
+}
+
+//
+// Turn something like:
+// "arn:aws:sns:eu-west-1:8xxxxxxxxxxx2:search-request-v1-ci"
+// into just "search-request-v1-ci"
+//
+function shortName (id) {
+  var type = guessType(id);
+  if (type === 's3') {
+    return id.substr(3, id.length);
+  } else if (type === 'sns') {
+    var parts = id.split(':');
+    return parts[parts.length - 1];
+  } else if (type === 'lambda') {
+    if (false && id.indexOf(':') !== -1) {
+      return 'λ:' + id.split(':')[id.split(':').length - 1];
+    } else {
+      return 'λ:' + id;
+    }
+  } else {
+    return id;
+  }
+}
+
 module.exports.handler = function (event, context, callback) {
   var dynamo = new AWS.DynamoDB({
     apiVersion: '2012-08-10',
@@ -35,7 +68,8 @@ module.exports.handler = function (event, context, callback) {
         seen.push(mapping);
 
         var node = {
-          id: item.lambda.S
+          id: shortName(item.lambda.S),
+          type: guessType(item.lambda.S)
         };
 
         if (graph.nodes.findIndex(function (n) { return n.id === node.id; }) > -1) {
@@ -45,14 +79,14 @@ module.exports.handler = function (event, context, callback) {
         }
 
         var link = {
-          source: item.lambda.S,
-          target: item.destination.S
+          source: shortName(item.lambda.S),
+          target: shortName(item.destination.S)
         };
 
         if (graph.nodes.findIndex(function (n) { return n.id === link.target; }) > -1) {
           // Already Exists
         } else {
-          graph.nodes.push({ id: link.target });
+          graph.nodes.push({ id: link.target, type: guessType(item.destination.S) });
         }
         graph.links.push(link);
       }
