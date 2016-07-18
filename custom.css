@@ -1,0 +1,21 @@
+.path {
+    stroke: #0000aa;
+    stroke-width: 2
+}
+
+.label {
+    color: #fff;
+    font-family: "Helvetica", sans-serif;
+    font-size: 9pt;
+}
+
+.node polygon, .node rect {
+    background-color: #66f;
+    fill: #66f;
+}
+
+span.edgeLabel, span.edgeLabel text {
+    color: #000;
+    background-color: #ffe;
+    fill: #ff0;
+}
