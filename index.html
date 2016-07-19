@@ -34,10 +34,16 @@
     font-size: 12px;
   }
 
-  .inner-text {
+  .label {
     font: 4px "Helvetica Neue", Helvetica, Arial, sans-serif;
     text-anchor: start;
     padding-left: 5px;
+  }
+
+  #legend {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 </style>
 
@@ -88,6 +94,12 @@ function directionalAdjective(sourceType, destType) {
               .attr("width", "100%").attr("height", "100%")
               .attr("pointer-events", "all")
               .call(d3.zoom().on("zoom", function () {
+                let text = d3.selectAll('.label');
+                if (d3.event.transform.k < 0.8) {
+                  text.attr('display', 'none');
+                } else {
+                  text.attr('display', '');
+                }
                 svg.attr("transform", "translate(" + d3.event.transform.x + ", " + d3.event.transform.y + ")" + " scale(" + d3.event.transform.k + ")")
               }))
               .append("g");
@@ -106,6 +118,33 @@ function directionalAdjective(sourceType, destType) {
           .attr('stroke', '#34495e')
         .append("svg:path")
           .attr("d", "M0,-5L10,0L0,5");
+
+      var legendRectSize = 18;
+      var legendSpacing = 4;
+      var legend = d3.select("#graph").append("svg")
+        .attr('id', 'legend')
+        .selectAll('.legend')
+        .data(color.domain())
+        .enter()
+        .append('g')
+        .attr('class', 'legend')
+        .attr('transform', function(d, i) {
+          var height = legendRectSize + legendSpacing;
+          var horz = legendRectSize;
+          var vert = i * height + 20;
+          return 'translate(' + horz + ',' + vert + ')';
+        });
+
+      legend.append('rect')
+        .attr('width', legendRectSize)
+        .attr('height', legendRectSize)
+        .style('fill', color)
+        .style('stroke', color);
+
+      legend.append('text')
+        .attr('x', legendRectSize + legendSpacing)
+        .attr('y', legendRectSize - legendSpacing)
+        .text(function(d) { return d; });
 
       force
         .nodes(graph.nodes)
@@ -126,7 +165,7 @@ function directionalAdjective(sourceType, destType) {
               .append("g")
               .attr("class", "linklabelholder")
               .append("text")
-              .attr("class", "linklabel")
+              .attr("class", "label")
               .style("font-size", "8px")
               .attr("x", "50")
               .attr("y", "-20")
@@ -178,6 +217,7 @@ function directionalAdjective(sourceType, destType) {
 
       node.append('text')
           .attr('class', 'inner-text')
+          .attr('class', 'label')
           .attr("dy", rect_height / 2)
           .attr("dx", d => rect_height * 0.2)
           .text(d => d.id);
