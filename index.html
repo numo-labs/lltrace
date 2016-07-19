@@ -138,8 +138,8 @@ function directionalAdjective(sourceType, destType) {
       legend.append('rect')
         .attr('width', legendRectSize)
         .attr('height', legendRectSize)
-        .style('fill', color)
-        .style('stroke', color);
+        .attr('class', 'node')
+        .style('fill', color);
 
       legend.append('text')
         .attr('x', legendRectSize + legendSpacing)
