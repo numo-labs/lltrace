@@ -58,8 +58,6 @@ function get_json (cb) {
   });
 };
 
-
-
 function directionalAdjective(sourceType, destType) {
   var linkText = '';
   if (sourceType === 'lambda' && destType === 'lambda') {
@@ -80,168 +78,167 @@ function directionalAdjective(sourceType, destType) {
 </script>
 
 <script type="text/javascript">
-    var width = window.innerWidth, height = window.innerHeight;
-    var color = d3.scaleOrdinal(d3.schemeDark2).domain(['s3', 'sns', 'lambda']);
-    var rect_height = 20;
 
-    get_json(function got_json (err, graph) {
-      var force = d3.forceSimulation()
-            .force("link", d3.forceLink().distance(150).strength(1).iterations(2).id(function(d) { return d.id; }))
-            .force("charge", d3.forceManyBody().distanceMin(20).strength(-230))
-            .force("center", d3.forceCenter(width / 2, height / 2));
+var width = window.innerWidth, height = window.innerHeight;
+var color = d3.scaleOrdinal(d3.schemeDark2).domain(['s3', 'sns', 'lambda']);
+var rect_height = 20;
 
-      var svg = d3.select("#graph").append("svg")
-              .attr("width", "100%").attr("height", "100%")
-              .attr("pointer-events", "all")
-              .call(d3.zoom().on("zoom", function () {
-                let text = d3.selectAll('.label');
-                if (d3.event.transform.k < 0.8) {
-                  text.attr('display', 'none');
-                } else {
-                  text.attr('display', '');
-                }
-                svg.attr("transform", "translate(" + d3.event.transform.x + ", " + d3.event.transform.y + ")" + " scale(" + d3.event.transform.k + ")")
-              }))
-              .append("g");
+get_json(function got_json (err, graph) {
+  var force = d3.forceSimulation()
+        .force("link", d3.forceLink().distance(150).strength(1).iterations(2).id((d) => { return d.id; }))
+        .force("charge", d3.forceManyBody().distanceMin(20).strength(-230))
+        .force("center", d3.forceCenter(width / 2, height / 2));
 
-      // build the arrow.
-      svg.append("svg:defs").selectAll("marker")
-          .data(["mid"])      // Different link/path types can be defined here
-        .enter().append("svg:marker")    // This section adds in the arrows
-          .attr("id", String)
-          .attr("viewBox", "0 -5 10 10")
-          .attr("refX", 0)
-          .attr("markerWidth", 10)
-          .attr("markerHeight", 10)
-          .attr("orient", "auto")
-          .attr('fill', '#34495e')
-          .attr('stroke', '#34495e')
-        .append("svg:path")
-          .attr("d", "M0,-5L10,0L0,5");
+  var svg = d3.select("#graph").append("svg")
+        .attr("width", "100%").attr("height", "100%")
+        .attr("pointer-events", "all")
+        .call(d3.zoom().on("zoom", function () {
+          let text = d3.selectAll('.label');
+          if (d3.event.transform.k < 0.8) {
+            text.attr('display', 'none');
+          } else {
+            text.attr('display', '');
+          }
+          svg.attr("transform", "translate(" + d3.event.transform.x + ", " + d3.event.transform.y + ")" + " scale(" + d3.event.transform.k + ")")
+        }))
+        .append("g");
 
-      var legendRectSize = 18;
-      var legendSpacing = 4;
-      var legend = d3.select("#graph").append("svg")
-        .attr('id', 'legend')
-        .selectAll('.legend')
-        .data(color.domain())
-        .enter()
-        .append('g')
-        .attr('class', 'legend')
-        .attr('transform', function(d, i) {
-          var height = legendRectSize + legendSpacing;
-          var horz = legendRectSize;
-          var vert = i * height + 20;
-          return 'translate(' + horz + ',' + vert + ')';
-        });
+  // build the arrow.
+  svg.append("svg:defs").selectAll("marker")
+      .data(["mid"])      // Different link/path types can be defined here
+    .enter().append("svg:marker")    // This section adds in the arrows
+      .attr("id", String)
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 0)
+      .attr("markerWidth", 10)
+      .attr("markerHeight", 10)
+      .attr("orient", "auto")
+      .attr('fill', '#34495e')
+      .attr('stroke', '#34495e')
+    .append("svg:path")
+      .attr("d", "M0,-5L10,0L0,5");
 
-      legend.append('rect')
-        .attr('width', legendRectSize)
-        .attr('height', legendRectSize)
-        .attr('class', 'node')
-        .style('fill', color);
-
-      legend.append('text')
-        .attr('x', legendRectSize + legendSpacing)
-        .attr('y', legendRectSize - legendSpacing)
-        .text(function(d) { return d; });
-
-      force
-        .nodes(graph.nodes)
-        .force('link')
-        .links(graph.links)
-
-      var link = svg.selectAll(".link")
-              .data(graph.links).enter()
-              .append("svg:path")
-              .attr("class", "link")
-              .attr("id",function(d,i) { return "linkId_" + i; })
-              .attr("marker-mid", "url(#mid)");
-
-      var linktext = svg.append("svg:g")
-              .selectAll("g.linklabelholder")
-              .data(graph.links)
-              .enter()
-              .append("g")
-              .attr("class", "linklabelholder")
-              .append("text")
-              .attr("class", "label")
-              .style("font-size", "8px")
-              .attr("x", "50")
-              .attr("y", "-20")
-              .attr("dx", (d) => directionalAdjective(d.source.type, d.target.type).length + 3)
-              .attr("dy", -9)
-              .attr("text-anchor", "start")
-              .style("fill","#000")
-              .append("textPath")
-              .attr("xlink:href",function(d,i) { return "#linkId_" + i;})
-              .text(function(d) { 
-                return directionalAdjective(d.source.type, d.target.type);
-              });
-
-      //var tip = d3.select("body").append("div")
-        //.attr("class", "tooltip")
-        //.style("opacity", 0);
-
-      var node = svg.selectAll(".node")
-              .data(graph.nodes)
-              .enter()
-              .append('g')
-              .attr('class', 'node_group')
-              .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-
-      node.append("rect")
-              .attr('class', 'node')
-              .attr('opacity', 1)
-              .attr('height', rect_height + 'px')
-              .attr('width', function width (d) {
-                d.width = d.id.length * 2 + rect_height;
-                return d.width + 'px';
-              })
-              .style('fill', (d, i) => {
-                return color(d.type);
-              })
-              .on("mouseover", function(d) {
-                //tip.transition()
-                //  .duration(200)
-                //  .style("opacity", .9);
-                //tip.html()
-                //  .style("left", (d3.event.pageX) + "px")
-                //  .style("top", (d3.event.pageY - 40) + "px");
-              })
-              .on("mouseout", function(d) {
-                //tip.transition()
-                //  .duration(500)
-                //  .style("opacity", 0);
-              });
-
-      node.append('text')
-          .attr('class', 'inner-text')
-          .attr('class', 'label')
-          .attr("dy", rect_height / 2)
-          .attr("dx", d => rect_height * 0.2)
-          .text(d => d.id);
-
-      // force feed algo ticks
-      force.on("tick", function() {
-        link.attr("d", function(d) {
-            // curved lines
-            var dx = d.target.x - d.source.x + 10,
-                dy = d.target.y - d.source.y + 10,
-                dr = Math.sqrt(dx * dx + dy * dy);
-            return "M" +
-                (d.source.x + d.source.width / 2) + "," +
-                (d.source.y + rect_height / 2) + "A" +
-                dr + "," + dr + " 0 0,1 " +
-                (d.target.x + d.target.width / 2) + "," +
-                (d.target.y + rect_height / 2);
-        });
-
-        svg.selectAll(".node_group")
-           .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-      });
+  var legendRectSize = 18;
+  var legendSpacing = 4;
+  var legend = d3.select("#graph").append("svg")
+    .attr('id', 'legend')
+    .selectAll('.legend')
+    .data(color.domain())
+    .enter()
+    .append('g')
+    .attr('class', 'legend')
+    .attr('transform', function(d, i) {
+      var height = legendRectSize + legendSpacing;
+      var horz = legendRectSize;
+      var vert = i * height + 20;
+      return 'translate(' + horz + ',' + vert + ')';
     });
 
+  legend.append('rect')
+    .attr('width', legendRectSize)
+    .attr('height', legendRectSize)
+    .attr('class', 'node')
+    .style('fill', color);
+
+  legend.append('text')
+    .attr('x', legendRectSize + legendSpacing)
+    .attr('y', legendRectSize - legendSpacing)
+    .text(function(d) { return d; });
+
+  force
+    .nodes(graph.nodes)
+    .force('link')
+    .links(graph.links)
+
+  var link = svg.selectAll(".link")
+          .data(graph.links).enter()
+          .append("svg:path")
+          .attr("class", "link")
+          .attr("id",function(d,i) { return "linkId_" + i; })
+          .attr("marker-mid", "url(#mid)");
+
+  var linktext = svg.append("svg:g")
+          .selectAll("g.linklabelholder")
+          .data(graph.links)
+          .enter()
+          .append("g")
+          .append("text")
+          .attr("class", "label")
+          .style("font-size", "8px")
+          .attr("x", "50")
+          .attr("y", "-20")
+          .attr("dx", (d) => directionalAdjective(d.source.type, d.target.type).length + 3)
+          .attr("dy", -9)
+          .attr("text-anchor", "start")
+          .style("fill","#000")
+          .append("textPath")
+          .attr("xlink:href",function(d,i) { return "#linkId_" + i;})
+          .text(function(d) {
+            return directionalAdjective(d.source.type, d.target.type);
+          });
+
+  //var tip = d3.select("body").append("div")
+    //.attr("class", "tooltip")
+    //.style("opacity", 0);
+
+  var node = svg.selectAll(".node")
+          .data(graph.nodes)
+          .enter()
+          .append('g')
+          .attr('class', 'node_group')
+          .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+
+  node.append("rect")
+          .attr('class', 'node')
+          .attr('opacity', 1)
+          .attr('height', rect_height + 'px')
+          .attr('width', function width (d) {
+            d.width = d.id.length * 2 + rect_height;
+            return d.width + 'px';
+          })
+          .style('fill', (d, i) => {
+            return color(d.type);
+          })
+          .on("mouseover", function(d) {
+            //tip.transition()
+            //  .duration(200)
+            //  .style("opacity", .9);
+            //tip.html()
+            //  .style("left", (d3.event.pageX) + "px")
+            //  .style("top", (d3.event.pageY - 40) + "px");
+          })
+          .on("mouseout", function(d) {
+            //tip.transition()
+            //  .duration(500)
+            //  .style("opacity", 0);
+          });
+
+  node.append('text')
+      .attr('class', 'inner-text')
+      .attr('class', 'label')
+      .attr("dy", rect_height / 2)
+      .attr("dx", d => rect_height * 0.2)
+      .text(d => d.id);
+
+  // force feed algo ticks
+  force.on("tick", function() {
+    link.attr("d", function(d) {
+        // curved lines
+        var dx = d.target.x - d.source.x + 10,
+            dy = d.target.y - d.source.y + 10,
+            dr = Math.sqrt(dx * dx + dy * dy);
+        return "M" +
+            (d.source.x + d.source.width / 2) + "," +
+            (d.source.y + rect_height / 2) + "A" +
+            dr + "," + dr + " 0 0,1 " +
+            (d.target.x + d.target.width / 2) + "," +
+            (d.target.y + rect_height / 2);
+    });
+
+    svg.selectAll(".node_group")
+       .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  });
+});
 </script>
 </body>
 </html>
