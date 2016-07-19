@@ -50,17 +50,37 @@ function get_json (cb) {
     cb(error, json);
   });
 };
+
+
+
+function directionalAdjective(sourceType, destType) {
+  var linkText = '';
+  if (sourceType === 'lambda' && destType === 'lambda') {
+    linkText = 'invokes';
+  } else if (sourceType === 'lambda' && destType === 'sns') {
+    linkText = 'publishes to';
+  } else if (sourceType === 'lambda' && destType === 's3') {
+    linkText = 'writes to';
+  } else if (sourceType === 's3' && destType === 'lambda') {
+    linkText = 'sends events to';
+  } else if (sourceType === 'sns' && destType === 'lambda') {
+    linkText = 'notifies';
+  } else {
+    linkText = '';
+  }
+  return linkText;
+}
 </script>
 
 <script type="text/javascript">
     var width = 800, height = 800;
-    var color = d3.scaleOrdinal(d3.schemeAccent).domain(['s3', 'sns', 'lambda']);
+    var color = d3.scaleOrdinal(d3.schemeDark2).domain(['s3', 'sns', 'lambda']);
     var rect_height = 20;
 
     get_json(function got_json (err, graph) {
       var force = d3.forceSimulation()
             .force("link", d3.forceLink().distance(150).strength(1).iterations(2).id(function(d) { return d.id; }))
-            .force("charge", d3.forceManyBody().distanceMin(20).strength(-200))
+            .force("charge", d3.forceManyBody().distanceMin(20).strength(-230))
             .force("center", d3.forceCenter(width / 2, height / 2));
 
       var svg = d3.select("#graph").append("svg")
@@ -77,10 +97,12 @@ function get_json (cb) {
         .enter().append("svg:marker")    // This section adds in the arrows
           .attr("id", String)
           .attr("viewBox", "0 -5 10 10")
-          .attr("refX", 15)
+          .attr("refX", 0)
           .attr("markerWidth", 10)
           .attr("markerHeight", 10)
           .attr("orient", "auto")
+          .attr('fill', '#34495e')
+          .attr('stroke', '#34495e')
         .append("svg:path")
           .attr("d", "M0,-5L10,0L0,5");
 
@@ -93,11 +115,33 @@ function get_json (cb) {
               .data(graph.links).enter()
               .append("svg:path")
               .attr("class", "link")
+              .attr("id",function(d,i) { return "linkId_" + i; })
               .attr("marker-mid", "url(#mid)");
 
-      var tip = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0);
+      var linktext = svg.append("svg:g")
+              .selectAll("g.linklabelholder")
+              .data(graph.links)
+              .enter()
+              .append("g")
+              .attr("class", "linklabelholder")
+              .append("text")
+              .attr("class", "linklabel")
+              .style("font-size", "8px")
+              .attr("x", "50")
+              .attr("y", "-20")
+              .attr("dx", (d) => directionalAdjective(d.source.type, d.target.type).length + 3)
+              .attr("dy", -9)
+              .attr("text-anchor", "start")
+              .style("fill","#000")
+              .append("textPath")
+              .attr("xlink:href",function(d,i) { return "#linkId_" + i;})
+              .text(function(d) { 
+                return directionalAdjective(d.source.type, d.target.type);
+              });
+
+      //var tip = d3.select("body").append("div")
+        //.attr("class", "tooltip")
+        //.style("opacity", 0);
 
       var node = svg.selectAll(".node")
               .data(graph.nodes)
@@ -118,17 +162,17 @@ function get_json (cb) {
                 return color(d.type);
               })
               .on("mouseover", function(d) {
-                tip.transition()
-                  .duration(200)
-                  .style("opacity", .9);
-                tip.html()
-                  .style("left", (d3.event.pageX) + "px")
-                  .style("top", (d3.event.pageY - 40) + "px");
-                })
+                //tip.transition()
+                //  .duration(200)
+                //  .style("opacity", .9);
+                //tip.html()
+                //  .style("left", (d3.event.pageX) + "px")
+                //  .style("top", (d3.event.pageY - 40) + "px");
+              })
               .on("mouseout", function(d) {
-                tip.transition()
-                  .duration(500)
-                  .style("opacity", 0);
+                //tip.transition()
+                //  .duration(500)
+                //  .style("opacity", 0);
               });
 
       node.append('text')
