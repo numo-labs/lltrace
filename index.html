@@ -85,8 +85,8 @@ var rect_height = 20;
 
 get_json(function got_json (err, graph) {
   var force = d3.forceSimulation()
-        .force("link", d3.forceLink().distance(150).strength(1).iterations(2).id((d) => { return d.id; }))
-        .force("charge", d3.forceManyBody().distanceMin(20).strength(-230))
+        .force("link", d3.forceLink().distance(() => 300).strength(2).iterations(2).id((d) => { return d.id; }))
+        .force("charge", d3.forceManyBody().distanceMin(20).distanceMax(600).strength(-330))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
   var svg = d3.select("#graph").append("svg")
@@ -219,6 +219,33 @@ get_json(function got_json (err, graph) {
       .attr("dy", rect_height / 2)
       .attr("dx", d => rect_height * 0.2)
       .text(d => d.id);
+
+  function dragsubject() {
+    return force.find(d3.event.x, d3.event.y);
+  }
+
+  function dragstarted() {
+    if (!d3.event.active) force.alphaTarget(0.3).restart();
+    d3.event.subject.fx = d3.event.subject.x;
+    d3.event.subject.fy = d3.event.subject.y;
+  }
+
+  function dragged() {
+    d3.event.subject.fx = d3.event.x;
+    d3.event.subject.fy = d3.event.y;
+  }
+
+  function dragended() {
+    if (!d3.event.active) force.alphaTarget(0);
+    d3.event.subject.fx = null;
+    d3.event.subject.fy = null;
+  }
+
+  svg.call(d3.drag()
+          .subject(dragsubject)
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended))
 
   // force feed algo ticks
   force.on("tick", function() {
