@@ -46,7 +46,7 @@
   }
 
   .label {
-    font: 4px "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font: 6pt monospace;
     text-anchor: start;
     padding-left: 5px;
   }
@@ -206,7 +206,7 @@ get_json(function got_json (err, graph) {
           .attr('opacity', 1)
           .attr('height', rect_height + 'px')
           .attr('width', function width (d) {
-            d.width = d.id.length * 2 + rect_height;
+            d.width = d.id.length * 5 + rect_height;
             return d.width + 'px';
           })
           .style('fill', (d, i) => {
