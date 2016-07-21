@@ -78,6 +78,24 @@ console.log('\tclass %s nodeLambda;', lambdaNodes.join(','));
 console.log('\tclass %s nodeSNS;', snsNodes.join(','));
 console.log('\tclass %s nodeS3;', s3Nodes.join(','));
 
+
+var L = require('lodash');
+
+var sources = L.map(lines, function (line) {
+  return line.split(',')[0];
+});
+
+var destinations = L.map(lines, function (line) {
+  return line.split(',')[1];
+});
+
+var x = L.difference(destinations, sources).filter(function (o) { return guessType(o) === 'lambda';});
+
+process.stderr.write('Found lambdas with no outgoing edges\n');
+process.stderr.write('(They might not be instrumented yet or don\'t call anything else)\n\n');
+process.stderr.write(x.join('\n') + '\n');
+
+
 function guessType (id) {
   if (id.startsWith('s3:')) {
     return 's3';
