@@ -7,8 +7,8 @@ var dynamo = new AWS.DynamoDB({
 });
 
 var params = {
-  TableName: 'lltracer',
-  AttributesToGet: ['lambda', 'destination', 'type'],
+  TableName: 'lltrace',
+  AttributesToGet: ['Caller', 'Target', 'Type'],
   /*ScanFilter: {
     type: {
       ComparisonOperator: 'EQ',
@@ -23,7 +23,7 @@ dynamo.scan(params, function (err, data) {
   if (err) { console.log(err); return; };
   var seen = [];
   data.Items.forEach(function (item) {
-    var mapping = format('%s,%s:%s', item.lambda.S, item.type.S, item.destination.S);
+    var mapping = format('%s,%s:%s', item.Caller.S, item.Type.S, item.Target.S);
     if (seen.indexOf(mapping) === -1) {
       console.log(mapping);
       seen.push(mapping);
