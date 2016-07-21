@@ -85,7 +85,7 @@ var rect_height = 20;
 
 get_json(function got_json (err, graph) {
   var simulation = d3.forceSimulation()
-        .force("link", d3.forceLink().distance(() => 300).strength(2).iterations(2).id((d) => { return d.id; }))
+        .force("link", d3.forceLink().distance(() => 150).strength(2).iterations(2).id((d) => { return d.id; }))
         .force("charge", d3.forceManyBody().distanceMin(20).distanceMax(600).strength(-330))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
