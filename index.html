@@ -229,7 +229,7 @@ get_json(function got_json (err, graph) {
   node.append('text')
       .attr('class', 'inner-text')
       .attr('class', 'label')
-      .attr("dy", rect_height / 2)
+      .attr("dy", rect_height / 2 + 2)
       .attr("dx", d => rect_height * 0.2)
       .text(d => d.id);
 
