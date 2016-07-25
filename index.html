@@ -55,6 +55,8 @@
     position: absolute;
     top: 0;
     left: 0;
+    width: 100px;
+    height: 90px;
   }
 </style>
 
@@ -98,8 +100,8 @@ get_json(function got_json (err, graph) {
   var load = d3.select('#load').attr('visibility', 'hidden');
 
   var simulation = d3.forceSimulation()
-        .force("link", d3.forceLink().distance(() => 150).strength(2).iterations(2).id((d) => { return d.id; }))
-        .force("charge", d3.forceManyBody().distanceMin(20).distanceMax(600).strength(-330))
+        .force("link", d3.forceLink().distance(() => 200).strength(2).iterations(4).id((d) => { return d.id; }))
+        .force("charge", d3.forceManyBody().distanceMin(100).distanceMax(600).strength(-330))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
   var svg = d3.select("#graph").append("svg")
@@ -230,7 +232,7 @@ get_json(function got_json (err, graph) {
       .attr('class', 'inner-text')
       .attr('class', 'label')
       .attr("dy", rect_height / 2 + 2)
-      .attr("dx", d => rect_height * 0.2)
+      .attr("dx", d => rect_height * 0.3)
       .text(d => d.id);
 
   function dragsubject() {
