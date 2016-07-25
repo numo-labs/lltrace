@@ -56,7 +56,7 @@
     top: 0;
     left: 0;
     width: 100px;
-    height: 90px;
+    height: 130px;
   }
 </style>
 
@@ -93,7 +93,7 @@ function directionalAdjective(sourceType, destType) {
 <script type="text/javascript">
 
 var width = window.innerWidth, height = window.innerHeight;
-var color = d3.scaleOrdinal(d3.schemeDark2).domain(['s3', 'sns', 'lambda']);
+var color = d3.scaleOrdinal(d3.schemeDark2).domain(['s3', 'sns', 'lambda', 'neo4j']);
 var rect_height = 20;
 
 get_json(function got_json (err, graph) {
