@@ -1,3 +1,5 @@
+'use strict';
+
 var AWS = require('aws-sdk');
 var A = require('async');
 
@@ -54,7 +56,9 @@ function handler(event, context, callback) {
       }
 
       var newItems = resp.Contents.filter(function(item) {
-        return new Date(item.LastModified).getTime() > cache.updatedOn;
+        var isJson = item.Key.endsWith('json');
+        var hasntBeenSeen = new Date(item.LastModified).getTime() > cache.updatedOn;
+        return isJson && hasntBeenSeen;
       });
 
       return next(null, { cache: cache, newItems: newItems });
@@ -75,10 +79,22 @@ function handler(event, context, callback) {
           if (err) {
             return done(err);
           }
-          var logEntry = JSON.parse(resp.Body);
 
-          cache.nodes.push({id: logEntry.Caller, type: logEntry.Type});
-          cache.links.push({source: logEntry.Caller, target: logEntry.Target });
+          var logEntry = null;
+          try {
+            logEntry = JSON.parse(resp.Body.toString());
+          } catch (err) {
+            console.log('********** We have something we cannot parse:');
+            console.log('Key:', item.Key);
+            console.log('Body:', resp.Body.toString());
+          }
+
+          if (logEntry) {
+            cache.nodes.push({id: logEntry.Caller, type: logEntry.Type});
+            cache.links.push({source: logEntry.Caller, target: logEntry.Target });
+          }
+
+          return done(null, cache);
         });
       },
       function allDone(err) {
@@ -94,7 +110,7 @@ function handler(event, context, callback) {
    * Updates cache in S3
    */
   function saveCache(cache, next) {
-    S3.putObject({
+    s3.putObject({
       Bucket: BUCKET,
       Key: 'cache.json',
       Body: JSON.stringify(cache, null, 4),
