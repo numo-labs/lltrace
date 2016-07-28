@@ -110,6 +110,8 @@ function handler(event, context, callback) {
    * Updates cache in S3
    */
   function saveCache(cache, next) {
+    cache.updatedOn = Date.now();
+
     s3.putObject({
       Bucket: BUCKET,
       Key: 'cache.json',
