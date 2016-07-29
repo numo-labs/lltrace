@@ -10,10 +10,16 @@ var s3Nodes = [];
 
 var links = '';
 
+var dotText = 'digraph G {\n';
+
 lines.forEach(function (line) {
   var source = line.split(',')[0];
   var dest = line.split(',')[1];
   if (! (source && dest)) return;
+
+  // We don't want prod
+  if(/prod/.test(source)) return;
+  if(/prod/.test(dest)) return;
 
   var sourceType = guessType(source);
   var destType = guessType(dest);
@@ -33,7 +39,9 @@ lines.forEach(function (line) {
     if (lambdaNodes.indexOf(source) === -1) { lambdaNodes.push(source); }
     //console.log('\tclass %s nodeLambda;', source);
   } else {
-    throw new Error('boom');
+    sourceText = format('%s>%s]', source, source);
+    // console.log('Unknown source type: %s', sourceType);
+    // throw new Error('boom');
   }
 
   if (destType === 's3') {
@@ -49,7 +57,9 @@ lines.forEach(function (line) {
     if (lambdaNodes.indexOf(dest) === -1) { lambdaNodes.push(dest); }
     //console.log('\tclass %s nodeLambda;', dest);
   } else {
-    throw new Error('boom');
+    destText = format('%s>%s]', dest, shortName(dest));
+    //console.error('******************** Unknown destination type: %s', destType);
+    //throw new Error('boom');
   }
 
   var linkText;
@@ -67,7 +77,28 @@ lines.forEach(function (line) {
     linkText = '-->';
   }
   links += format('\t%s%s%s;\n', sourceText, linkText, destText);
+
+  var src = shortName(source);
+  var dst = shortName(dest);
+  var edgeLabel = linkText.replace(/--/g, '').replace('>', '').trim();
+  var srcColor = sourceType === 's3' ? 'yellow':
+        (sourceType === 'lambda' ? 'lightgreen' :
+         (sourceType === 'sns' ? 'lightblue'
+          : 'white'));
+  var srcShape = 'egg';
+  dotText += format('\t"%s" -> "%s" [label="%s" style=filled fillcolor=%s];\n',
+                    src, dst, edgeLabel, srcColor);
+  dotText += format('\t"%s" [shape=%s fillcolor=%s style=filled]\n', src, srcShape, srcColor);
+  var dstColor = destType === 's3' ? 'yellow':
+        (destType === 'lambda' ? 'lightgreen' :
+         (destType === 'sns' ? 'lightblue'
+          : 'white'));
+  dotText += format('\t"%s" [shape=%s fillcolor=%s style=filled]\n', dst, srcShape, dstColor);
 });
+
+dotText += '\n}';
+
+console.error(dotText);
 
 console.log('graph LR;');
 console.log('\tclassDef nodeLambda fill:#393;');
@@ -101,6 +132,10 @@ function guessType (id) {
     return 's3';
   } else if (/\:sns\:/.test(id)) {
     return 'sns';
+  } else if (/lambda/.test(id)) {
+    return 'lambda';
+  } else if (/.+\:.+/.test(id)) {
+    return 'custom';
   } else {
     return 'lambda'; // FIXME: not actually very reliable
   }
@@ -119,11 +154,22 @@ function shortName (id) {
     var parts = id.split(':');
     return 'SNS: ' + parts[parts.length - 1];
   } else if (type === 'lambda') {
-    if (false && id.indexOf(':') !== -1) {
-      return 'λ: ' + id.split(':')[id.split(':').length - 1];
+    if (id.indexOf(':') !== -1) {
+      var split = id.split(':');
+      if (split.length >= 7) {
+        return 'λ: ' + split[6];
+      } else if (split.length === 2) {
+        return split[0]; // SNS -> lambda subscription
+      } else if (split.length === 4) {
+        return split[2];
+      } else {
+        return 'λ: ' + split[split.length - 1];
+      }
     }  else {
       return 'λ: ' + id;
     }
+  } else if (type === 'custom') {
+    return id;
   } else {
     return id;
   }
